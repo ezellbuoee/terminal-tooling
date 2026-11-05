@@ -1,0 +1,10 @@
+// Tab layout used by the menu: files | work | shell
+layout {
+    tab {
+        pane split_direction="vertical" {
+            pane name="files" size="22%" command="/Users/eolasehinde/.config/zellij/bin/files-pane" borderless=true
+            pane name="work" size="56%" focus=true
+            pane name="shell" size="22%"
+        }
+    }
+}

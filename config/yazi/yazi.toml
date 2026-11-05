@@ -1,0 +1,20 @@
+# Narrow sidebar mode: only the current directory column, no parent/preview panes
+[mgr]
+ratio = [0, 1, 0]
+sort_by = "natural"
+sort_dir_first = true
+show_hidden = false
+
+# "o" menu, same order for every file and folder. Enter uses the smart-open plugin instead.
+[opener]
+vim     = [{ run = '/Users/eolasehinde/.config/zellij/bin/zj-open vim %s',      desc = "LazyVim (floating)",    orphan = true }]
+app     = [{ run = '/Users/eolasehinde/.config/zellij/bin/zj-open app %s',      desc = "macOS app",             orphan = true }]
+cd      = [{ run = '/Users/eolasehinde/.config/zellij/bin/zj-open cd %s',       desc = "Enter Path (current)",  orphan = true }]
+cdfloat = [{ run = '/Users/eolasehinde/.config/zellij/bin/zj-open cd-float %s', desc = "Enter Path (floating)", orphan = true }]
+finder  = [{ run = '/Users/eolasehinde/.config/zellij/bin/zj-open finder %s',   desc = "Reveal in Finder",      orphan = true }]
+
+[open]
+prepend_rules = [
+  { url = "*/", use = ["vim", "app", "cd", "cdfloat", "finder"] },
+  { url = "*",  use = ["vim", "app", "cd", "cdfloat", "finder"] },
+]

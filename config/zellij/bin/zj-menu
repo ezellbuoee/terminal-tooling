@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# One menu for everything. Opened with Alt+Space (or F1).
+export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.rd/bin:$PATH"
+Z="$HOME/.config/zellij"
+# Zellij spawns panes with a minimal PATH, so always hand it an absolute command path.
+float() {
+  local name="$1" cmd; cmd="$(command -v "$2")"
+  if [[ -z "$cmd" ]]; then printf '\n  %s is not installed.\n\n  press enter\n' "$2"; read -r; return; fi
+  zellij run -f -c -x 5% -y 5% --width 90% --height 90% --cwd "$PWD" -n "$name" -- "$cmd" "${@:3}"
+}
+
+choice=$(printf '%s\n' \
+  "project    open a project in a new tab" \
+  "git        lazygit for this folder" \
+  "docker     lazydocker" \
+  "k8s        k9s" \
+  "monitor    btop system monitor" \
+  "session    switch or create session" \
+  "tab        new empty tab" \
+  "rename     rename this tab" \
+  "close      close this tab" \
+  "help       keys" \
+  "guide      full setup guide (GUIDE.md)" \
+  | fzf --prompt='  ' --reverse --no-info --height=100% --color='prompt:#cba6f7,pointer:#cba6f7,hl:#f9e2af,hl+:#f9e2af' \
+  | awk '{print $1}')
+
+case "$choice" in
+  project) exec "$Z/bin/zj-project" ;;
+  git)
+    if git -C "$PWD" rev-parse --git-dir >/dev/null 2>&1; then float git lazygit
+    else printf '\n  %s is not a git repo.\n  Use "project" first to open one.\n\n  press enter\n' "${PWD/#$HOME/~}"; read -r; fi ;;
+  docker)  float docker lazydocker ;;
+  k8s)     float k8s k9s ;;
+  monitor) float monitor btop ;;
+  session) zellij action launch-or-focus-plugin zellij:session-manager --floating ;;
+  tab)     zellij action new-tab -l dev-tab -c "$PWD" ;;
+  rename)  printf '  new name: '; read -r n; [[ -n "$n" ]] && zellij action rename-tab "$n" ;;
+  close)   zellij action close-tab ;;
+  guide)   float guide glow -p -w 110 "$Z/GUIDE.md" ;;
+  help)    float help less -R -P '  q = close   ↑↓ = scroll' "$Z/HELP.txt" ;;
+esac

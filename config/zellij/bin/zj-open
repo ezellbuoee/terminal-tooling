@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# zj-open MODE PATH...   (called from yazi)
+#   vim      LazyVim in a floating Zellij pane
+#   vim-main LazyVim typed into the "work" pane right of the sidebar
+#   app      macOS application for the file type
+#   cd       enter the path in the current shell (file -> its folder):
+#            sidebar: typed into the work pane; plain yazi: yazi quits into it
+#   cd-float open a floating shell already in that path
+#   finder   reveal in Finder
+#   smart    Enter key: text/code -> vim, otherwise app
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+mode="$1"; shift
+[[ $# -eq 0 ]] && exit 0
+dir="$(dirname "$1")"
+typeinto() { zellij action move-focus right; zellij action write-chars "$1"; zellij action write 13; }
+# running inside the sidebar pane (named "files")?
+in_sidebar() { [[ -n "$ZJ_SIDEBAR" ]] && return 0; zellij action list-panes 2>/dev/null | grep -q "^terminal_${ZELLIJ_PANE_ID}[[:space:]].*[[:space:]]files$"; }
+# does the current tab still have a "work" pane to type into?
+tab_has_work_pane() { zellij action dump-layout 2>/dev/null | sed -n '/focus=true hide_floating_panes/,/^    }/p' | grep -q 'name="work"'; }
+case "$mode" in
+  vim)      exec zellij run -f -c -x 5% -y 5% --width 90% --height 90% --cwd "$dir" -n nvim -- /opt/homebrew/bin/nvim "$@" ;;
+  vim-main) cmd="nvim"; for f in "$@"; do cmd+=" $(printf '%q' "$f")"; done; typeinto "$cmd" ;;
+  app)      exec /usr/bin/open "$@" ;;
+  finder)   exec /usr/bin/open -R "$@" ;;
+  cd)
+    target="$1"; [[ -d "$target" ]] || target="$dir"
+    if in_sidebar; then
+      if tab_has_work_pane; then typeinto "cd $(printf '%q' "$target")"
+      else zellij action new-pane -d right --cwd "$target" -n work -- /bin/zsh; fi
+    else ya emit cd "$target"; ya emit quit; fi ;;
+  cd-float)
+    target="$1"; [[ -d "$target" ]] || target="$dir"
+    exec zellij run -f -c -x 15% -y 15% --width 70% --height 70% --cwd "$target" -n "quick task  ·  ⌥c or exit = close  ·  ⌥m = hide" -- /bin/zsh ;;
+  smart)
+    m="$(file -b --mime-type "$1")"
+    case "$m" in
+      text/*|inode/x-empty|application/json|application/x-sh*|application/xml|application/*yaml|application/toml|application/javascript)
+        exec "$0" vim "$@" ;;
+      *) case "${1##*.}" in
+           md|txt|yml|yaml|toml|kdl|json|xml|java|kt|go|py|rs|js|ts|tsx|jsx|sh|zsh|conf|cfg|ini|env|properties|gradle|lock|log|bat)
+             exec "$0" vim "$@" ;;
+           *) exec /usr/bin/open "$@" ;;
+         esac ;;
+    esac ;;
+esac

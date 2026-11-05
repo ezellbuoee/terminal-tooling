@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Sidebar: start yazi in the pane's real working directory.
+export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.rd/bin:$PATH"
+export EDITOR=nvim VISUAL=nvim ZJ_SIDEBAR=1
+YAZI="$(command -v yazi || echo /opt/homebrew/bin/yazi)"
+cd "$(pwd -P)" && exec "$YAZI" "$(pwd -P)"

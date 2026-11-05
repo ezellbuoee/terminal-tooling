@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Fuzzy-pick a project and open it as a new Zellij tab using the dev layout.
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+ROOTS="$HOME/.config/zellij/project-roots"
+list() {
+  while IFS= read -r r; do
+    [[ -z "$r" || "${r:0:1}" == "#" ]] && continue
+    r="${r/#\~/$HOME}"; [[ -d "$r" ]] || continue
+    echo "$r"
+    find "$r" -mindepth 1 -maxdepth 2 -not -path "*/.*/*" \( -name .git -o -name pom.xml -o -name go.mod -o -name package.json \) 2>/dev/null \
+      | sed -E 's|/(\.git\|pom\.xml\|go\.mod\|package\.json)$||' | sort -u
+  done < "$ROOTS"
+}
+sel="$(list | sed "s|^$HOME|~|" | fzf --prompt='project > ' --height=100% --reverse --preview 'eza -la --icons --git --color=always $(echo {} | sed "s|^~|$HOME|") 2>/dev/null | head -40')"
+[[ -z "$sel" ]] && exit 0
+dir="${sel/#\~/$HOME}"; name="$(basename "$dir")"
+zellij action new-tab -l dev-tab -c "$dir" -n "$name"

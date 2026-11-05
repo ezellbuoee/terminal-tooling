@@ -1,0 +1,32 @@
+
+   KEYS
+
+   Alt+Space  or  F1     open the menu (everything is in there)
+   Esc / q               close a floating tool (lazygit, btop, ...)
+
+   Alt+arrows            move between panes
+   Alt+1 .. Alt+5        jump to tab
+   Alt+w                 close tab
+   Alt+f                 quick floating shell (type exit or Alt+c to close)
+   Alt+c                 close the focused pane
+   Alt+m                 hide / show floating panes
+
+   Ctrl+p  then  r / d   split pane right / down
+   Ctrl+p  then  f       fullscreen the pane
+   Ctrl+p  then  x       close pane
+
+   IN YAZI (left pane)   arrows move, Enter open, h back, q quit
+   IN LAZYGIT            space stage, c commit, P push, ? help
+
+   Project folders are read from ~/.config/zellij/project-roots
+
+Sidebar (yazi) file opening   (same in plain yazi)
+  o          menu: LazyVim (floating) / macOS app / Enter Path (current) /
+             Enter Path (floating) / Reveal in Finder
+  Enter      folder: go in   file: text/code -> LazyVim (floating), else macOS app
+  e          LazyVim (floating), :q to close     E  LazyVim in the work pane
+  O          macOS app
+  b          Enter Path (current): sidebar -> the work pane changes folder,
+             plain yazi -> yazi quits and your shell is there (file: its folder)
+  B          Enter Path (floating): a floating shell already in that folder
+  r          Reveal in Finder

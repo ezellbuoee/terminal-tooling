@@ -1,0 +1,21 @@
+#!/bin/sh
+# Ghostty entry point.
+# 1. Give the Zellij server a real PATH (Ghostty starts us with only /usr/bin:/bin),
+#    so every command pane (yazi, lazygit, nvim, glow ...) resolves without hacks.
+export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.rd/bin:$HOME/.local/bin:$PATH"
+export EDITOR=nvim VISUAL=nvim
+ZJ=/opt/homebrew/bin/zellij
+# 2. Raise the open-file limit (GUI apps start at 256; the server inherits it).
+ulimit -n 65536 2>/dev/null || ulimit -n 10240 2>/dev/null
+# 3. Drop dead sessions so a session is always created fresh from the dev layout.
+$ZJ list-sessions -n 2>/dev/null | awk '/EXITED/ {print $1}' | while read -r s; do
+  $ZJ delete-session "$s" >/dev/null 2>&1
+done
+# 4. First window attaches to "home"; every further window gets its own session
+#    (home-2, home-3 ...) instead of mirroring the first one.
+name=home; n=1
+while $ZJ list-sessions -n 2>/dev/null | awk '{print $1}' | grep -qx "$name" \
+      && [ "$($ZJ -s "$name" action list-clients 2>/dev/null | awk 'NR>1' | wc -l)" -gt 0 ]; do
+  n=$((n+1)); name="home-$n"
+done
+exec $ZJ attach -c "$name"

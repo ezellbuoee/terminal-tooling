@@ -1,0 +1,59 @@
+// Startup layout: yazi | work | lazygit + shell, zjstatus bar
+layout {
+    default_tab_template {
+        children
+        pane size=1 borderless=true {
+            plugin location="file:/Users/eolasehinde/.config/zellij/plugins/zjstatus.wasm" {
+                format_left   "#[fg=#cba6f7,bold] ⌥Space menu #[fg=#6c7086]│#[fg=#cdd6f4] {session} #[fg=#6c7086]│{mode}#[fg=#6c7086]│{tabs}"
+                format_center "#[fg=#f9e2af]⌥f#[fg=#9399b2] quick  #[fg=#f9e2af]⌥c#[fg=#9399b2] close  #[fg=#f9e2af]⌥m#[fg=#9399b2] hide  #[fg=#f9e2af]⌥←↑↓→#[fg=#9399b2] focus  #[fg=#f9e2af]⌥1-5#[fg=#9399b2] tab  #[fg=#f9e2af]⌥w#[fg=#9399b2] close tab  #[fg=#6c7086]│ #[fg=#a6e3a1]{command_git_branch}"
+                format_right  "{command_cpu}{command_mem}{command_disk}#[fg=#6c7086]│{datetime}"
+                format_space  ""
+                format_hide_on_overlength "true"
+                format_precedence "lrc"
+                hide_frame_for_single_pane "false"
+                pane_frame_style "titles"
+                mode_normal   "#[fg=#a6e3a1] NORMAL "
+                mode_locked   "#[fg=#f38ba8] LOCKED "
+                mode_pane     "#[fg=#89b4fa] PANE "
+                mode_tab      "#[fg=#f9e2af] TAB "
+                mode_resize   "#[fg=#fab387] RESIZE "
+                mode_move     "#[fg=#fab387] MOVE "
+                mode_scroll   "#[fg=#94e2d5] SCROLL "
+                mode_search   "#[fg=#94e2d5] SEARCH "
+                mode_session  "#[fg=#cba6f7] SESSION "
+                mode_rename_tab  "#[fg=#f9e2af] RENAME "
+                mode_rename_pane "#[fg=#89b4fa] RENAME "
+                mode_enter_search "#[fg=#94e2d5] SEARCH "
+                mode_tmux     "#[fg=#f9e2af] TMUX "
+                tab_normal "#[fg=#6c7086] {name} "
+                tab_active "#[fg=#cba6f7,bold] {name} "
+                command_git_branch_command    "sh -c 'git rev-parse --abbrev-ref HEAD 2>/dev/null || echo -'"
+                command_git_branch_format     "  {stdout} "
+                command_git_branch_interval   "10"
+                command_git_branch_rendermode "static"
+                command_cpu_command    "sh -c 'ps -A -o %cpu | awk \"{s+=\\$1} END {printf \\\"%d%%\\\", s/$(sysctl -n hw.ncpu)}\"'"
+                command_cpu_format     "#[fg=#cdd6f4]  {stdout} "
+                command_cpu_interval   "10"
+                command_cpu_rendermode "static"
+                command_mem_command    "sh -c 'vm_stat | awk \"/Pages active|Pages wired/ {s+=\\$NF} END {printf \\\"%.1fG\\\", s*4096/1073741824}\"'"
+                command_mem_format     "#[fg=#cdd6f4]  {stdout} "
+                command_mem_interval   "10"
+                command_mem_rendermode "static"
+                command_disk_command    "sh -c 'df -h / | awk \"NR==2 {print \\$4}\"'"
+                command_disk_format     "#[fg=#cdd6f4] 󰋊 {stdout} "
+                command_disk_interval   "60"
+                command_disk_rendermode "static"
+                datetime          "#[fg=#cdd6f4,bold] {format} "
+                datetime_format   "%a %b %d, %H:%M"
+                datetime_timezone "Europe/Berlin"
+            }
+        }
+    }
+    tab name="home" focus=true {
+        pane split_direction="vertical" {
+            pane name="files" size="22%" command="/Users/eolasehinde/.config/zellij/bin/files-pane" borderless=true
+            pane name="work" size="56%" focus=true
+            pane name="shell" size="22%"
+        }
+    }
+}

@@ -1,0 +1,88 @@
+# ==========================================
+# GHOSTTY — Baki edition
+# Reload: cmd+shift+,
+# ==========================================
+
+# Font
+font-family = JetBrainsMono Nerd Font
+# fallback for icon glyphs if the family above is not registered
+font-family = JetBrainsMono Nerd Font Mono
+font-size = 14
+font-thicken = true
+
+# Theme
+theme = Catppuccin Mocha
+window-theme = dark
+
+# Window
+window-padding-x = 14
+window-padding-y = 12
+window-padding-balance = true
+window-decoration = true
+window-inherit-working-directory = true
+window-save-state = always
+confirm-close-surface = false
+macos-titlebar-style = tabs
+macos-option-as-alt = true
+
+# Transparency + blur
+background = #1e1e2e
+background-opacity = 0.82
+background-blur = 24
+# cells that set their own background (status bars, yazi, nvim) stay transparent too
+background-opacity-cells = true
+unfocused-split-opacity = 0.85
+# Baki background image (transparency above still applies on top of it)
+# Alternatives in ~/Pictures/ghostty: yujiro-demon-back.jpg, baki-black.jpg, baki-faceoff.jpg, sakura-night.png
+background-image = ~/Pictures/ghostty/yujiro-demon-back.jpg
+background-image-opacity = 0.30
+background-image-position = center
+background-image-fit = cover
+
+# Splits (used when you open Ghostty-native splits instead of Zellij panes)
+split-divider-color = #45475a
+
+# Cursor
+cursor-style = block
+cursor-style-blink = false
+cursor-color = #f5e0dc
+mouse-hide-while-typing = true
+bold-is-bright = false
+window-padding-color = extend
+
+# Terminal
+scrollback-limit = 100000
+clipboard-read = allow
+clipboard-write = allow
+shell-integration = zsh
+
+# Start every new terminal inside Zellij (multiple panes / sidebars).
+# Comment this line out to get a plain zsh instead.
+command = /Users/eolasehinde/.config/zellij/bin/zj-start
+
+# Keybindings — Ghostty-level (tabs/windows)
+keybind = cmd+t=new_tab
+keybind = cmd+w=close_surface
+keybind = cmd+shift+right=next_tab
+keybind = cmd+shift+left=previous_tab
+keybind = cmd+shift+comma=reload_config
+
+# Ghostty-native splits (second layer on top of Zellij, if you want them)
+keybind = cmd+d=new_split:right
+keybind = cmd+shift+d=new_split:down
+keybind = cmd+shift+enter=toggle_split_zoom
+keybind = cmd+alt+left=goto_split:left
+keybind = cmd+alt+right=goto_split:right
+keybind = cmd+alt+up=goto_split:up
+keybind = cmd+alt+down=goto_split:down
+keybind = cmd+shift+e=equalize_splits
+# cmd+c: Zellij would turn it into a plain "c", so send a private sequence that
+# zsh maps to "copy selection" (see ~/.config/zsh/mouse.zsh). Text selected
+# with shift+drag is copied automatically (copy-on-select).
+keybind = cmd+c=text:\x1b_zm:copy\x1b\\
+copy-on-select = clipboard
+# cmd+z / cmd+shift+z: undo / redo in the shell line editor (same mechanism as cmd+c)
+keybind = cmd+z=text:\x1b_zm:undo\x1b\\
+keybind = cmd+shift+z=text:\x1b_zm:redo\x1b\\
+# cmd+k: sent to Zellij as F12, which clears the focused pane (works while any program runs)
+keybind = cmd+k=text:\x1b[24~

@@ -1,0 +1,39 @@
+[[mgr.prepend_keymap]]
+on = "<Enter>"
+run = 'plugin smart-open'
+desc = "Enter folder, or open file (text -> VIM, else macOS app)"
+
+[[mgr.prepend_keymap]]
+on = "o"
+run = 'open --interactive'
+desc = "Open with: LazyVim / macOS app / Enter Path current or floating / Finder"
+
+[[mgr.prepend_keymap]]
+on = "e"
+run = 'shell --orphan "/Users/eolasehinde/.config/zellij/bin/zj-open vim %s"'
+desc = "VIM (floating)"
+
+[[mgr.prepend_keymap]]
+on = "E"
+run = 'shell --orphan "/Users/eolasehinde/.config/zellij/bin/zj-open vim-main %s"'
+desc = "VIM in the work pane"
+
+[[mgr.prepend_keymap]]
+on = "O"
+run = 'shell --orphan "/Users/eolasehinde/.config/zellij/bin/zj-open app %s"'
+desc = "macOS app"
+
+[[mgr.prepend_keymap]]
+on = "b"
+run = 'shell --orphan "/Users/eolasehinde/.config/zellij/bin/zj-open cd %s"'
+desc = "Enter Path (current)"
+
+[[mgr.prepend_keymap]]
+on = "B"
+run = 'shell --orphan "/Users/eolasehinde/.config/zellij/bin/zj-open cd-float %s"'
+desc = "Enter Path (floating)"
+
+[[mgr.prepend_keymap]]
+on = "r"
+run = 'shell --orphan "/Users/eolasehinde/.config/zellij/bin/zj-open finder %s"'
+desc = "Reveal in Finder"
