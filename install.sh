@@ -35,14 +35,15 @@ for d in "$R"/config/*/; do
 done
 backup "$HOME/.config/starship.toml"; cp "$R/config/starship.toml" "$HOME/.config/starship.toml"
 chmod +x "$HOME/.config/zellij/bin/"*
-# the configs carry absolute paths; rewrite them if this Mac has a different user name
-if [[ "$HOME" != "/Users/eolasehinde" ]]; then
-  grep -rl "/Users/eolasehinde" "$HOME/.config/zellij" "$HOME/.config/yazi" "$HOME/.config/ghostty" "$HOME/.config/zsh" 2>/dev/null \
-    | xargs -I{} sed -i '' "s|/Users/eolasehinde|$HOME|g" {}
-fi
 
 say "Home files"
 for f in .zshrc .antigen.zsh; do backup "$HOME/$f"; cp "$R/home/$f" "$HOME/$f"; done
+
+# the configs carry absolute paths; rewrite them if this Mac has a different user name
+if [[ "$HOME" != "/Users/eolasehinde" ]]; then
+  grep -rl "/Users/eolasehinde" "$HOME/.config/zellij" "$HOME/.config/yazi" "$HOME/.config/ghostty" "$HOME/.config/zsh" "$HOME/.zshrc" 2>/dev/null \
+    | xargs -I{} sed -i '' "s|/Users/eolasehinde|$HOME|g" {}
+fi
 mkdir -p "$HOME/Pictures/ghostty"; cp -n "$R"/pictures/ghostty/* "$HOME/Pictures/ghostty/" 2>/dev/null || true
 mkdir -p "$HOME/.config/zellij" && touch "$HOME/.config/zellij/project-roots"
 

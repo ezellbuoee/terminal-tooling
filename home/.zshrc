@@ -266,7 +266,7 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 #[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
 
 source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-source /Users/eolasehinde/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+[[ -f "$HOME/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]] && source "$HOME/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 
 #autosuggest color setting
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#f8dda6"
@@ -275,14 +275,14 @@ ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#f8dda6"
 #[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh  # disabled: replaced by starship
 
 # Added by Windsurf
-export PATH="/Users/eolasehinde/.codeium/windsurf/bin:$PATH"
+[[ -d "$HOME/.codeium/windsurf/bin" ]] && export PATH="$HOME/.codeium/windsurf/bin:$PATH"
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 
 # OpenClaw Completion
-[ -f "/Users/eolasehinde/.openclaw/completions/openclaw.zsh" ] && source "/Users/eolasehinde/.openclaw/completions/openclaw.zsh"
+[ -f "$HOME/.openclaw/completions/openclaw.zsh" ] && source "$HOME/.openclaw/completions/openclaw.zsh"
 
 # opencode
-export PATH=/Users/eolasehinde/.opencode/bin:$PATH
+[[ -d "$HOME/.opencode/bin" ]] && export PATH="$HOME/.opencode/bin:$PATH"
 
 ### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
 export PATH="/Users/eolasehinde/.rd/bin:$PATH"
