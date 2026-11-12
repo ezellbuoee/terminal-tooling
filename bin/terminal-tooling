@@ -1,0 +1,28 @@
+#!/bin/bash
+# Entry point for the Homebrew package: brew install ezellbuoee/terminal-tooling/terminal-tooling
+#   terminal-tooling install       install tools + configs (same as ./install.sh)
+#   terminal-tooling configs       configs only, skip Homebrew (SKIP_BREW=1)
+#   terminal-tooling version
+set -euo pipefail
+R="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
+VERSION="$(cat "$R/VERSION" 2>/dev/null || echo dev)"
+
+case "${1:-help}" in
+  install) exec "$R/install.sh" ;;
+  configs) SKIP_BREW=1 exec "$R/install.sh" ;;
+  version|-v|--version) echo "terminal-tooling $VERSION" ;;
+  help|-h|--help)
+    cat <<USAGE
+terminal-tooling $VERSION — Ghostty + Zellij + yazi + starship setup
+
+usage: terminal-tooling <command>
+  install   install the tools (brew bundle) and copy the configs into ~
+  configs   copy the configs only, skip Homebrew
+  version   print the version
+
+Files it replaces are backed up to ~/.config-backup-<timestamp>/.
+Update: brew upgrade terminal-tooling && terminal-tooling configs
+USAGE
+    ;;
+  *) echo "unknown command: $1 (try: terminal-tooling help)" >&2; exit 1 ;;
+esac
