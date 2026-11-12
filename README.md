@@ -1,12 +1,12 @@
 # Terminal workstation
 
 Ghostty + Zellij + yazi + starship, themed Catppuccin Mocha, with a Nerd Font, a
-click-to-move command line, and a menu-driven layout. This repo holds every file
-needed to rebuild it on a fresh Mac in one command.
+click-to-move command line, and a menu-driven layout. Clone the repo, run one
+script, and you get the whole setup on any Mac.
 
 ## Table of contents
-1. [Restore on a fresh Mac](#1-restore-on-a-fresh-mac)
-2. [Keep the backup current](#2-keep-the-backup-current)
+1. [Install](#1-install)
+2. [Make it yours](#2-make-it-yours)
 3. [What gets installed](#3-what-gets-installed)
 4. [Repository layout](#4-repository-layout)
 5. [Daily keys](#5-daily-keys)
@@ -15,17 +15,29 @@ needed to rebuild it on a fresh Mac in one command.
 
 ---
 
-## 1. Restore on a fresh Mac
+## 1. Install
+
+### Requirements
+- macOS on Apple Silicon (the installer uses Homebrew at `/opt/homebrew`)
+- `git` (run `xcode-select --install` if macOS asks for developer tools)
+- an internet connection; Homebrew may ask for your password
+
+### Steps
 
 ```bash
-# 1. get the repo (GitHub, iCloud copy, USB stick — wherever you keep it)
-git clone <your-remote> ~/dotfiles-terminal
-
-# 2. run the installer
+git clone https://github.com/ezellbuoee/terminal-tooling.git ~/dotfiles-terminal
 ~/dotfiles-terminal/install.sh
 ```
 
-The installer, in order:
+Then open **Ghostty**. It starts straight into Zellij with the sidebar layout.
+Press **Alt+Space → guide** for the in-terminal manual.
+
+> **Heads-up:** the installer replaces your `~/.zshrc`, `~/.antigen.zsh` and the
+> matching folders in `~/.config` (ghostty, zellij, yazi, zsh, nvim, bat, lazygit,
+> btop, starship.toml). Every file it replaces is first copied to
+> `~/.config-backup-<timestamp>/`, so you can diff or restore your old setup.
+
+### What the installer does
 
 | step | what happens | time |
 |---|---|---|
@@ -33,40 +45,49 @@ The installer, in order:
 | `brew bundle` | Ghostty, the Nerd Font and every CLI tool from `Brewfile` | 2–4 min |
 | shell extras | oh-my-zsh, zsh-syntax-highlighting, zsh-autosuggestions if missing | 10 s |
 | configs | copies `config/*` to `~/.config`, `.zshrc` and `.antigen.zsh` to `~` | 1 s |
-| paths | rewrites `/Users/eolasehinde` to the current home if the user name differs | 1 s |
+| paths | rewrites the hard-coded home folder in the configs to your `$HOME` | 1 s |
+| wallpapers | copies `pictures/ghostty/*` to `~/Pictures/ghostty` | 1 s |
 | yazi | installs the Mocha flavour and plugins (`ya pkg install`) | 5 s |
 
-Anything it replaces is first copied to `~/.config-backup-<timestamp>/`.
 It is safe to re-run at any time.
 
-**Config-only restore** (tools already installed, you just want the files back):
+**Config only** (tools already installed, you just want the files):
 
 ```bash
 SKIP_BREW=1 ~/dotfiles-terminal/install.sh      # takes about a second
 ```
 
-Afterwards open Ghostty. It starts straight into Zellij with the sidebar layout.
-
 ### First-time checks
 - macOS may ask to allow Ghostty in *System Settings → Privacy & Security* the first time.
 - If icons look broken, open a new Ghostty window once so it picks up the freshly installed font.
-- Project picker folders live in `~/.config/zellij/project-roots` (one folder per line).
 
-## 2. Keep the backup current
+### Update later
+
+```bash
+cd ~/dotfiles-terminal && git pull && SKIP_BREW=1 ./install.sh
+```
+
+Drop `SKIP_BREW=1` if the `Brewfile` changed.
+
+## 2. Make it yours
+
+| want to change | edit |
+|---|---|
+| folders shown in the project picker | `~/.config/zellij/project-roots`, one folder per line (default `~/Documents/projects`) |
+| wallpaper / transparency | `background-image*` and `background-opacity` in `~/.config/ghostty/config`, then cmd+shift+, |
+| prompt | `~/.config/starship.toml` |
+| shell aliases, PATH | `~/.zshrc` (it includes a few optional PATH entries that are skipped when the folder does not exist) |
+| keys | `~/.config/zellij/config.kdl` (Zellij), `~/.config/yazi/keymap.toml` (sidebar) |
+
+### Keep your own copy in git
+
+Fork the repo (or point `origin` at your own remote), then after any tweak run:
 
 ```bash
 ~/dotfiles-terminal/backup.sh
 ```
 
-Copies the live config into the repo, commits, and pushes if a remote is set.
-Run it after any tweak. To add a remote once:
-
-```bash
-cd ~/dotfiles-terminal
-gh repo create dotfiles-terminal --private --source=. --push     # with GitHub CLI
-# or
-git remote add origin git@github.com:<you>/dotfiles-terminal.git && git push -u origin main
-```
+It copies the live config back into the repo, commits, and pushes if a remote is set.
 
 ## 3. What gets installed
 
@@ -88,7 +109,7 @@ git remote add origin git@github.com:<you>/dotfiles-terminal.git && git push -u 
 
 ```
 Brewfile                 tools + font + Ghostty for `brew bundle`
-install.sh               restore everything (idempotent)
+install.sh               install everything (idempotent)
 backup.sh                sync live config back here and commit
 config/
   ghostty/config         terminal settings and cmd-key routing
