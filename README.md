@@ -19,10 +19,28 @@ script, and you get the whole setup on any Mac.
 
 ### Requirements
 - macOS on Apple Silicon (the installer uses Homebrew at `/opt/homebrew`)
-- `git` (run `xcode-select --install` if macOS asks for developer tools)
 - an internet connection; Homebrew may ask for your password
 
-### Steps
+### Option A: Homebrew
+
+```bash
+brew install ezellbuoee/terminal-tooling/terminal-tooling
+terminal-tooling install
+```
+
+Later updates:
+
+```bash
+brew upgrade terminal-tooling && terminal-tooling configs
+```
+
+`terminal-tooling configs` copies the configs only and skips `brew bundle`.
+
+### Option B: git clone
+
+Use this if you want to change the configs and keep them in your own fork
+(see [Keep your own copy in git](#keep-your-own-copy-in-git)). Needs `git`
+(`xcode-select --install` if macOS asks for developer tools).
 
 ```bash
 git clone https://github.com/ezellbuoee/terminal-tooling.git ~/dotfiles-terminal
@@ -61,7 +79,7 @@ SKIP_BREW=1 ~/dotfiles-terminal/install.sh      # takes about a second
 - macOS may ask to allow Ghostty in *System Settings → Privacy & Security* the first time.
 - If icons look broken, open a new Ghostty window once so it picks up the freshly installed font.
 
-### Update later
+### Update a git clone
 
 ```bash
 cd ~/dotfiles-terminal && git pull && SKIP_BREW=1 ./install.sh
@@ -110,6 +128,8 @@ It copies the live config back into the repo, commits, and pushes if a remote is
 ```
 Brewfile                 tools + font + Ghostty for `brew bundle`
 install.sh               install everything (idempotent)
+bin/terminal-tooling     command exposed by the Homebrew package
+VERSION                  release version, used by the Homebrew formula
 backup.sh                sync live config back here and commit
 config/
   ghostty/config         terminal settings and cmd-key routing
