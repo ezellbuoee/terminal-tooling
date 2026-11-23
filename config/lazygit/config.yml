@@ -5,12 +5,12 @@ gui:
     selectedLineBgColor: ["#313244"]
   showIcons: true
   nerdFontsVersion: "3"
-  sidePanelWidth: 0.4
+  sidePanelWidth: 0.3
 
 git:
   paging:
     colorArg: always
-    pager: delta --dark --paging=never --line-numbers --syntax-theme="Catppuccin Mocha"
+    pager: delta --dark --paging=never --line-numbers --side-by-side --syntax-theme="Catppuccin Mocha"
 
 customCommands:
   # Structural (AST-aware) diff of the selected file via difftastic
