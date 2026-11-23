@@ -68,4 +68,50 @@ newhome; inst; [[ -e "$tmp/.ya-ran" ]] || bad L "stub ya not used on full instal
 newhome; inst --skip yazi-config
 [[ ! -e "$tmp/.ya-ran" ]] && ok L || bad L "ya ran despite --skip yazi-config"
 
+# stubbed oh-my-zsh installer: like the real one with KEEP_ZSHRC=yes, writes a template .zshrc only if none exists
+ompinst() { printf '#!/bin/sh\ntouch "%s/.omz-ran"\nmkdir -p "$HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions"\n[ -e "$HOME/.zshrc" ] || echo "OMZ TEMPLATE" > "$HOME/.zshrc"\n' "$tmp" > "$tmp/omz-stub.sh"
+  TT_OMZ_INSTALLER="$tmp/omz-stub.sh"; export TT_OMZ_INSTALLER; }
+freshhome() { tmp="$(mktemp -d)"; mkdir -p "$tmp/zsh-syntax-highlighting"; ompinst; }
+
+# M: fresh Mac, no .zshrc, oh-my-zsh not installed: .zshrc is exactly the block, installer ran
+freshhome; inst
+[[ -e "$tmp/.omz-ran" && "$(cat "$tmp/.zshrc")" == "$BLOCK" ]] && ok M || bad M "zshrc: $(cat "$tmp/.zshrc" 2>/dev/null)"
+
+# N: --skip omz does not run the oh-my-zsh step
+freshhome; inst --skip omz
+[[ ! -e "$tmp/.omz-ran" && ! -d "$tmp/.oh-my-zsh" ]] && ok N || bad N "omz step ran"
+unset TT_OMZ_INSTALLER
+
+# O: --skip persists across plain re-runs
+newhome; mkdir -p "$tmp/.config/nvim"; echo x > "$tmp/.config/nvim/mine.lua"; inst --skip nvim; inst
+if [[ -f "$tmp/.config/nvim/mine.lua" && ! -d "$tmp/.config/nvim/lua" ]] && ! ls -d "$tmp"/.config-backup-*/.config/nvim >/dev/null 2>&1 \
+  && grep -qx nvim "$tmp/.config/terminal-tooling/skip"; then ok O; else bad O "nvim skip not persistent"; fi
+
+# P: --skip shell then plain re-run never adds the managed line
+newhome; inst --skip shell; inst
+[[ ! -e "$tmp/.zshrc" && ! -e "$tmp/.config/terminal-tooling/init.zsh" ]] && ok P || bad P "shell installed"
+
+# Q: skip file merges, sorted unique; --only neither reads nor writes it
+newhome; inst --skip zellij,nvim; inst --skip nvim,btop
+[[ "$(cat "$tmp/.config/terminal-tooling/skip")" == "$(printf 'btop\nnvim\nzellij')" ]] || bad Q "merge wrong"
+cp "$tmp/.config/terminal-tooling/skip" "$tmp/skip.1"; rm -rf "$tmp/.config/zellij"; inst --only zellij
+cmp -s "$tmp/skip.1" "$tmp/.config/terminal-tooling/skip" && [[ -d "$tmp/.config/zellij" ]] && ok Q || bad Q "--only changed or obeyed skip file"
+
+# R: read-only .zshrc via symlink: install continues, block printed, exit 0
+newhome; echo "alias x=1" > "$tmp/real-zshrc"; chmod 444 "$tmp/real-zshrc"; ln -s "$tmp/real-zshrc" "$tmp/.zshrc"; inst; rc=$?
+if [[ $rc == 0 && -d "$tmp/.config/zellij" && "$(cat "$tmp/real-zshrc")" == "alias x=1" ]] && grep -qF "$BLOCK" "$tmp/.out" \
+  && grep -q 'add this to your ~/.zshrc' "$tmp/.out"; then ok R; else bad R "rc=$rc"; fi
+
+# S: writable symlink: appended to target
+newhome; echo "alias x=1" > "$tmp/real-zshrc"; ln -s "$tmp/real-zshrc" "$tmp/.zshrc"; inst
+grep -qF 'terminal-tooling (managed' "$tmp/real-zshrc" && grep -q 'symlink' "$tmp/.out" && ok S || bad S "not appended to target"
+
+# T: empty lists are usage errors and change nothing
+t=1
+for args in "--only ''" "--only ," "--skip ''" "--skip ,"; do
+  newhome; eval "inst $args"; rc=$?
+  [[ $rc == 2 && ! -e "$tmp/.zshrc" && ! -e "$tmp/.config" ]] || { t=0; bad T "'$args' rc=$rc"; }
+done
+[[ $t == 1 ]] && ok T
+
 exit $fail

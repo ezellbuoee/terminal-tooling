@@ -43,3 +43,10 @@ echo 'tt_after() { TT_AFTER_RAN=1 }' > "$d/local.zsh"
 out=$(run_zsh "$d" ':' 'print -r -- ${TT_AFTER_RAN:-unset}')
 [[ "$out" == "1" ]] || fail "case 5: got '$out'"
 echo "ok 5"
+
+# 6. omz disabled, no autosuggestions: keys module is silent
+d="$tmp/d6"; mkdir -p "$d"; cp -R "$ROOT/zsh/init.zsh" "$ROOT/zsh/modules" "$d/"
+echo 'TT_DISABLE=(omz)' > "$d/local.zsh"
+HOME="$tmp" PATH=/usr/bin:/bin zsh -f -c "TT_DIR='$d'; source \$TT_DIR/init.zsh" 2>"$tmp/err"
+[[ ! -s "$tmp/err" ]] || fail "case 6: stderr not empty: $(cat "$tmp/err")"
+echo "ok 6"

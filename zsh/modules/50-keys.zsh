@@ -8,4 +8,4 @@ bindkey '^[^?' backward-kill-word
 bindkey '^[[H' beginning-of-line
 bindkey '^[[F' end-of-line
 # accept an autosuggestion with Ctrl-Space
-bindkey '^ ' autosuggest-accept
+if (( $+widgets[autosuggest-accept] )); then bindkey '^ ' autosuggest-accept; fi

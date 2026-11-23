@@ -20,8 +20,10 @@ usage: terminal-tooling <command> [--skip LIST] [--only LIST]
   configs   copy the configs only, skip Homebrew
   version   print the version
 
-  --skip LIST   install everything except these units (comma-separated)
-  --only LIST   install just these units
+  --skip LIST   install everything except these units (comma-separated); the
+                names are remembered in ~/.config/terminal-tooling/skip, one per
+                line, and skipped on every later run (edit that file to re-enable)
+  --only LIST   install just these units (ignores and never writes the skip file)
 
 Units:
   shell                zsh hook + loader + modules

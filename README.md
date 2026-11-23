@@ -70,7 +70,7 @@ Press **Alt+Space → guide** for the in-terminal manual.
 |---|---|---|
 | Homebrew | installed if missing | 1–2 min |
 | `brew bundle` | Ghostty, the Nerd Font and every CLI tool from `Brewfile` | 2–4 min |
-| shell extras | oh-my-zsh, zsh-syntax-highlighting, zsh-autosuggestions if missing | 10 s |
+| shell extras | appends the managed line first, then oh-my-zsh, zsh-syntax-highlighting, zsh-autosuggestions if missing (skip with `--skip omz`) | 10 s |
 | configs | copies `config/*` to `~/.config` | 1 s |
 | shell | copies `zsh/` to `~/.config/terminal-tooling/`, appends the managed line to `~/.zshrc`, creates `local.zsh` once | 1 s |
 | paths | rewrites the hard-coded home folder in the configs to your `$HOME` | 1 s |
@@ -101,7 +101,11 @@ terminal-tooling configs --only zellij,ghostty-config
 | `omz` `tools` `ghostty` `fzf` `keys` `mouse` `yazi` `starship` | the individual zsh modules (a module name in `--only` implies `shell`) |
 | `ghostty-config` `zellij` `yazi-config` `nvim` `lazygit` `btop` `starship-config` `wallpapers` | the `~/.config` folders and wallpapers |
 
-A skipped folder is left untouched (no backup, no copy). Skipped modules are
+A skipped folder is left untouched (no backup, no copy). `--skip` is remembered:
+the names are merged into `~/.config/terminal-tooling/skip` (one unit per line,
+sorted) and every later run skips them too, so a plain re-run or upgrade keeps
+your own nvim, yazi, ... config. To install a unit again, delete its line from
+that file. A run with `--only` ignores the file and never writes it. Skipped modules are
 recorded in `~/.config/terminal-tooling/local.zsh` when the installer creates it;
 if that file already exists the installer tells you to edit it instead.
 
@@ -113,14 +117,21 @@ TT_DISABLE=(mouse)             # or TT_ONLY=(omz tools) to load just those
 tt_after() { alias ll='ls -l' }
 ```
 
-To opt out entirely, delete the managed line from `~/.zshrc` and remove
-`~/.config/terminal-tooling/`.
+To opt out of the shell hook entirely, run `terminal-tooling configs --skip shell`
+(remembered, so later runs will not add the line back) and delete the managed
+line from `~/.zshrc`.
+
+If `~/.zshrc` is read-only or managed elsewhere (for example a symlink to a
+read-only file), the installer does not touch it; it prints the two-line block
+for you to add yourself and carries on.
 
 ### Upgrading from 1.x
 
 Version 2.0.0 no longer copies your personal shell files over yours. If you installed 1.x
-you keep the `.zshrc` it copied; it simply gains the managed line. The old
-sections in it are now redundant, so you may delete them by hand.
+you keep the `.zshrc` it copied; it simply gains the managed line. That old
+`.zshrc` still sources oh-my-zsh, starship and `~/.antigen.zsh`, so those load
+twice until you delete those sections by hand. Once they are gone, `~/.antigen.zsh`
+and `~/.config/zsh/` are unused and can be deleted too.
 
 ### First-time checks
 - macOS may ask to allow Ghostty in *System Settings → Privacy & Security* the first time.
