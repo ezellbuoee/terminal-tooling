@@ -80,6 +80,14 @@ freshhome; inst
 # N: --skip omz does not run the oh-my-zsh step
 freshhome; inst --skip omz
 [[ ! -e "$tmp/.omz-ran" && ! -d "$tmp/.oh-my-zsh" ]] && ok N || bad N "omz step ran"
+
+# U: --only shell on a fresh HOME runs the omz step; .zshrc is exactly the block
+freshhome; inst --only shell
+[[ -e "$tmp/.omz-ran" && "$(cat "$tmp/.zshrc")" == "$BLOCK" ]] && ok U || bad U "omz step or zshrc wrong"
+
+# V: --skip shell on a fresh HOME does not run the omz step and creates no .zshrc
+freshhome; inst --skip shell; inst
+[[ ! -e "$tmp/.omz-ran" && ! -e "$tmp/.zshrc" ]] && ok V || bad V "omz ran or zshrc created"
 unset TT_OMZ_INSTALLER
 
 # O: --skip persists across plain re-runs

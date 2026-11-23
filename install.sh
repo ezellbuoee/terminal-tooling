@@ -26,6 +26,13 @@ Units: $ALL_UNITS
 EOT
 }
 
+# module_enabled M : module M is on (--only naming no module, or naming M, or no --only; and not skipped)
+module_enabled() {
+  local m restrict=""
+  for m in $ZSH_MODULES; do [[ " $ONLY " == *" $m "* ]] && restrict=1; done
+  if [[ -n "$restrict" || -z "$ONLY" ]]; then want "$1"; else return 0; fi
+}
+
 # a unit is wanted unless skipped, or (with --only) unless not listed
 want() {
   if [[ -n "$ONLY" ]]; then [[ " $ONLY " == *" $1 "* ]]; return; fi
@@ -114,7 +121,7 @@ fi
 say "Shell extras"
 # the managed block goes in first, so oh-my-zsh's installer (KEEP_ZSHRC=yes) keeps our .zshrc
 if want shell; then append_managed_block; fi
-if want omz; then
+if want shell && module_enabled omz; then
   if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
     if [[ -n "${TT_OMZ_INSTALLER:-}" ]]; then  # test hook: run this script instead of downloading
       RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh "$TT_OMZ_INSTALLER"
@@ -143,12 +150,7 @@ install_shell() {
   mkdir -p "$tt/modules"
   rsync -a "$R/zsh/init.zsh" "$tt/init.zsh"
   rsync -a --delete "$R/zsh/modules/" "$tt/modules/"
-  # --only naming modules restricts them; --only shell (or no --only) keeps all modules on
-  local restrict=""
-  for m in $ZSH_MODULES; do [[ " $ONLY " == *" $m "* ]] && restrict=1; done
-  for m in $ZSH_MODULES; do
-    if [[ -n "$restrict" ]] || [[ -z "$ONLY" ]]; then want "$m" || disabled="$disabled $m"; fi
-  done
+  for m in $ZSH_MODULES; do module_enabled "$m" || disabled="$disabled $m"; done
   disabled="${disabled# }"
   if [[ ! -e "$tt/local.zsh" ]]; then
     sed "s/^TT_DISABLE=().*/TT_DISABLE=($disabled)/" "$R/zsh/local.zsh.example" > "$tt/local.zsh"
