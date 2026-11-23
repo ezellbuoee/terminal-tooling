@@ -1,0 +1,7 @@
+# terminal-tooling: your overrides. Never overwritten by the installer.
+# Disable modules by name: omz tools ghostty fzf keys mouse yazi starship
+TT_DISABLE=()
+# Or load only these (empty = all not disabled):
+TT_ONLY=()
+# Runs after all modules (aliases that must win, PATH tweaks, ...):
+tt_after() { : }
