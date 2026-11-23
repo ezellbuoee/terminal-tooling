@@ -66,7 +66,8 @@ if [[ -z "${SKIP_BREW:-}" ]]; then
   say "Installing tools + font (brew bundle)"
   brew bundle --file="$R/Brewfile" --no-upgrade
 fi
-export PATH="/opt/homebrew/bin:$PATH"
+# add Homebrew to PATH only if absent, so earlier PATH entries keep priority
+[[ ":$PATH:" == *":/opt/homebrew/bin:"* ]] || export PATH="$PATH:/opt/homebrew/bin"
 
 say "Shell extras"
 if want shell; then
@@ -92,7 +93,12 @@ install_shell() {
   mkdir -p "$tt/modules"
   rsync -a "$R/zsh/init.zsh" "$tt/init.zsh"
   rsync -a --delete "$R/zsh/modules/" "$tt/modules/"
-  for m in $ZSH_MODULES; do want "$m" || disabled="$disabled $m"; done
+  # --only naming modules restricts them; --only shell (or no --only) keeps all modules on
+  local restrict=""
+  for m in $ZSH_MODULES; do [[ " $ONLY " == *" $m "* ]] && restrict=1; done
+  for m in $ZSH_MODULES; do
+    if [[ -n "$restrict" ]] || [[ -z "$ONLY" ]]; then want "$m" || disabled="$disabled $m"; fi
+  done
   disabled="${disabled# }"
   if [[ ! -e "$tt/local.zsh" ]]; then
     sed "s/^TT_DISABLE=().*/TT_DISABLE=($disabled)/" "$R/zsh/local.zsh.example" > "$tt/local.zsh"
