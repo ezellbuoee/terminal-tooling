@@ -13,6 +13,8 @@ brew "bat"
 brew "zoxide"
 brew "glow"
 brew "lazygit"
+brew "git-delta"      # lazygit diff pager
+brew "difftastic"     # lazygit structural diff (D key)
 brew "lazydocker"
 brew "btop"
 brew "k9s"

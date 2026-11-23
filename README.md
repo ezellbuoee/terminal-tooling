@@ -121,6 +121,7 @@ It copies the live config back into the repo, commits, and pushes if a remote is
 | **eza**, **bat** | ls / cat replacements | `ls`, `ll`, `lt`, `cat` aliases, Mocha colours |
 | **glow** | Markdown viewer | the in-terminal guide (Alt+Space → guide) |
 | **lazygit**, **lazydocker**, **k9s**, **btop**, **stern** | floating tools | menu entries git / docker / k8s / monitor |
+| **git-delta**, **difftastic** | diffs in lazygit | delta is the default pager; press `D` on a file or commit for a difftastic structural diff |
 | **JetBrainsMono Nerd Font** | font | icons in prompt, sidebar, status bar |
 
 ## 4. Repository layout

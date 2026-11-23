@@ -6,3 +6,22 @@ gui:
   showIcons: true
   nerdFontsVersion: "3"
   sidePanelWidth: 0.4
+
+git:
+  paging:
+    colorArg: always
+    pager: delta --dark --paging=never --line-numbers --syntax-theme="Catppuccin Mocha"
+
+customCommands:
+  # Structural (AST-aware) diff of the selected file via difftastic
+  - key: "D"
+    context: "files"
+    description: "difftastic diff of selected file"
+    command: "GIT_EXTERNAL_DIFF='difft --color=always --display=inline' git diff --ext-diff HEAD -- {{.SelectedFile.Name | quote}} | less -R"
+    subprocess: true
+  # Structural diff of the selected commit via difftastic
+  - key: "D"
+    context: "commits"
+    description: "difftastic diff of selected commit"
+    command: "GIT_EXTERNAL_DIFF='difft --color=always --display=inline' git show --ext-diff {{.SelectedLocalCommit.Hash}} | less -R"
+    subprocess: true
