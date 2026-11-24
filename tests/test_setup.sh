@@ -126,4 +126,8 @@ printf 'TT_BACKGROUND=\nTT_PANES=3\nTT_SIDEBAR=yazi\n' > "$tmp/.config/terminal-
 ( HOME="$tmp" bash "$R/setup.sh" --ask </dev/null >"$tmp/.out" 2>"$tmp/.err" & p=$!; ( sleep 5; kill $p 2>/dev/null ) & w=$!; wait $p; echo $? > "$tmp/.rc"; kill $w 2>/dev/null ) 2>/dev/null
 [[ "$(cat "$tmp/.rc")" == 0 ]] && grep -q "ignoring empty TT_BACKGROUND" "$tmp/.err" && ok 18 || bad 18 "empty path: rc=$(cat "$tmp/.rc") $(head -2 "$tmp/.err")"
 
+# 19. a shipped wallpaper chosen without the wallpapers unit is copied in on apply
+newhome; rm -rf "$tmp/Pictures"; printf '3\n3\n1\n' | run
+[[ -f "$tmp/Pictures/ghostty/sakura-night.png" ]] && grep -q '^background-image = ~/Pictures/ghostty/sakura-night.png$' "$tmp/.config/ghostty/config" && ok 19 || bad 19 "image not copied: $(cat "$tmp/.err")"
+
 exit $fail

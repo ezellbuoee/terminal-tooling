@@ -150,6 +150,10 @@ apply_zellij() {
 apply_ghostty() {
   local f="$HOME/.config/ghostty/config" shown bg="$TT_BACKGROUND"
   [[ -f "$f" ]] || return 0
+  # a shipped wallpaper chosen before (or without) the wallpapers unit: copy just that image in
+  if [[ "$bg" == "$WALL_DIR/"* && ! -f "$bg" && -f "$R/pictures/ghostty/$(basename "$bg")" ]]; then
+    mkdir -p "$WALL_DIR" && cp "$R/pictures/ghostty/$(basename "$bg")" "$bg"
+  fi
   if [[ "$bg" != none && ! -f "$bg" ]]; then warn "background image $bg not found; background disabled until it exists"; bg=none; fi
   if [[ "$bg" == none ]]; then
     local t; t="$(mktemp -t tt-ghostty.XXXXXX)"
