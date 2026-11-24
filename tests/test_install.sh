@@ -132,4 +132,9 @@ newhome; mkdir -p "$tmp/.config/terminal-tooling"; printf 'TT_BACKGROUND=none\nT
 p="$(sed -n '/tt:panes-begin/,/tt:panes-end/p' "$tmp/.config/zellij/layouts/dev-tab.kdl")"
 [[ "$p" == *'command="btop"'* && "$p" != *'name="shell"'* ]] && grep -q '^#background-image = ' "$tmp/.config/ghostty/config" && ok X || bad X "answers not re-applied: $p"
 
+# Y: fresh Mac (empty ~/Pictures, no wallpapers yet): a non-interactive install keeps the default wallpaper
+newhome; mkdir -p "$tmp/Pictures"; inst --only zellij,ghostty-config,wallpapers
+[[ "$(grep ^TT_BACKGROUND= "$tmp/.config/terminal-tooling/setup.conf")" == "TT_BACKGROUND=$tmp/Pictures/ghostty/yujiro-demon-back.jpg" ]] \
+  && grep -q '^background-image = ~/Pictures/ghostty/yujiro-demon-back.jpg$' "$tmp/.config/ghostty/config" && ok Y || bad Y "default wallpaper lost: $(grep background-image "$tmp/.config/ghostty/config" | head -1)"
+
 exit $fail

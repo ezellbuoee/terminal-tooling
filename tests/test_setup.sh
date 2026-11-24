@@ -82,16 +82,16 @@ newhome; sed -i '' '/tt:panes-end/d' "$tmp/.config/zellij/layouts/dev-tab.kdl"; 
 printf '1\n2\n2\n' | run
 cmp -s "$tmp/.tab1" "$tmp/.config/zellij/layouts/dev-tab.kdl" && grep -q "markers missing or broken" "$tmp/.err" && [[ "$(panes "$tmp/.config/zellij/layouts/dev.kdl")" == *lazygit* ]] && ok 10 || bad 10 "broken-marker file changed or no warning"
 
-# 11. a path with & in the conf is written literally; a | path is refused at the prompt
+# 11. paths with & or | are written literally (no sed mangling)
 newhome; mkdir -p "$tmp/a&b"; touch "$tmp/a&b/x.jpg"; printf 'TT_BACKGROUND=%s\nTT_PANES=3\nTT_SIDEBAR=yazi\n' "$tmp/a&b/x.jpg" > "$tmp/.config/terminal-tooling/setup.conf"; run --apply
 grep -qF "background-image = ~/a&b/x.jpg" "$tmp/.config/ghostty/config" && [[ "$(grep -c '^background-image = ' "$tmp/.config/ghostty/config")" == 1 ]] || bad 11 "& path mangled: $(grep background-image "$tmp/.config/ghostty/config")"
-mkdir -p "$tmp/c|d"; touch "$tmp/c|d/y.png"; printf 'o\n%s\n1\n3\n1\n' "$tmp/c|d/y.png" | run
-grep -q "not supported" "$tmp/.out" && [[ "$(conf TT_BACKGROUND)" == "$tmp/Pictures/ghostty/baki-black.jpg" ]] && ok 11 || bad 11 "| path accepted"
+mkdir -p "$tmp/c|d"; touch "$tmp/c|d/y.png"; printf 'o\n%s\n3\n1\n' "$tmp/c|d/y.png" | run
+[[ "$(conf TT_BACKGROUND)" == "$tmp/c|d/y.png" ]] && grep -qF "background-image = ~/c|d/y.png" "$tmp/.config/ghostty/config" && ok 11 || bad 11 "| path: $(conf TT_BACKGROUND)"
 
-# 12. end of input with a missing saved image finishes quickly and keeps a valid state
+# 12. a saved image that no longer exists: end of input keeps the answer, apply disables the background with a warning
 newhome; printf 'TT_BACKGROUND=%s/gone.png\nTT_PANES=3\nTT_SIDEBAR=yazi\n' "$tmp" > "$tmp/.config/terminal-tooling/setup.conf"
 ( HOME="$tmp" bash "$R/setup.sh" </dev/null >"$tmp/.out" 2>"$tmp/.err" & p=$!; ( sleep 5; kill $p 2>/dev/null ) & w=$!; wait $p; echo $? > "$tmp/.rc"; kill $w 2>/dev/null ) 2>/dev/null
-[[ "$(cat "$tmp/.rc")" == 0 && "$(conf TT_BACKGROUND)" == "$tmp/Pictures/ghostty/yujiro-demon-back.jpg" ]] && ok 12 || bad 12 "rc=$(cat "$tmp/.rc") bg=$(conf TT_BACKGROUND) lines=$(wc -l < "$tmp/.out")"
+[[ "$(cat "$tmp/.rc")" == 0 && "$(conf TT_BACKGROUND)" == "$tmp/gone.png" ]] && grep -q "not found; background disabled" "$tmp/.err" && grep -q '^#background-image = ' "$tmp/.config/ghostty/config" && ok 12 || bad 12 "rc=$(cat "$tmp/.rc") bg=$(conf TT_BACKGROUND) err=$(head -1 "$tmp/.err")"
 
 # 13. a wallpaper with spaces in its name is one entry and selectable
 newhome; touch "$tmp/Pictures/ghostty/a my wall.jpg"; printf '1\n3\n1\n' | run
@@ -112,5 +112,18 @@ printf 'TT_PANES=2\r\nTT_SIDEBAR=btop\r\n' > "$tmp/.config/terminal-tooling/setu
 # 16. a layout that is a symlink stays a symlink and its target is updated
 newhome; mv "$tmp/.config/zellij/layouts/dev.kdl" "$tmp/dev.real"; ln -s "$tmp/dev.real" "$tmp/.config/zellij/layouts/dev.kdl"; printf '1\n2\n1\n' | run
 [[ -L "$tmp/.config/zellij/layouts/dev.kdl" ]] && [[ "$(panes "$tmp/dev.real")" == *'size="25%"'* ]] && ok 16 || bad 16 "symlink replaced"
+
+# 17. before the wallpapers are copied (empty ~/Pictures), the default and a picked image still point at ~/Pictures/ghostty
+newhome; rm -rf "$tmp/Pictures/ghostty"; mkdir -p "$tmp/Pictures"; run --defaults
+[[ "$(conf TT_BACKGROUND)" == "$tmp/Pictures/ghostty/yujiro-demon-back.jpg" ]] || bad 17 "default: $(conf TT_BACKGROUND)"
+rm -f "$tmp/.config/terminal-tooling/setup.conf"; printf '2\n3\n1\n' | run --ask
+[[ "$(conf TT_BACKGROUND)" == "$tmp/Pictures/ghostty/baki-faceoff.jpg" ]] && ok 17 || bad 17 "picked: $(conf TT_BACKGROUND)"
+
+# 18. end of input after an invalid answer stops the questions with a warning (no loop); an unsafe saved path is ignored
+newhome; ( printf 'x' | HOME="$tmp" bash "$R/setup.sh" --ask >"$tmp/.out" 2>"$tmp/.err" & p=$!; ( sleep 5; kill $p 2>/dev/null ) & w=$!; wait $p; echo $? > "$tmp/.rc"; kill $w 2>/dev/null ) 2>/dev/null
+[[ "$(cat "$tmp/.rc")" == 0 ]] && grep -q "end of input" "$tmp/.err" && [[ "$(grep -c 'pick a number' "$tmp/.out")" == 1 ]] || bad 18 "rc=$(cat "$tmp/.rc") prompts=$(grep -c 'pick a number' "$tmp/.out")"
+printf 'TT_BACKGROUND=\nTT_PANES=3\nTT_SIDEBAR=yazi\n' > "$tmp/.config/terminal-tooling/setup.conf"
+( HOME="$tmp" bash "$R/setup.sh" --ask </dev/null >"$tmp/.out" 2>"$tmp/.err" & p=$!; ( sleep 5; kill $p 2>/dev/null ) & w=$!; wait $p; echo $? > "$tmp/.rc"; kill $w 2>/dev/null ) 2>/dev/null
+[[ "$(cat "$tmp/.rc")" == 0 ]] && grep -q "ignoring empty TT_BACKGROUND" "$tmp/.err" && ok 18 || bad 18 "empty path: rc=$(cat "$tmp/.rc") $(head -2 "$tmp/.err")"
 
 exit $fail
