@@ -71,6 +71,7 @@ Press **Alt+Space → guide** for the in-terminal manual.
 | Homebrew | installed if missing | 1–2 min |
 | `brew bundle` | Ghostty, the Nerd Font and every CLI tool from `Brewfile` | 2–4 min |
 | shell extras | appends the managed line first, then oh-my-zsh, zsh-syntax-highlighting, zsh-autosuggestions if missing (skip with `--skip omz`) | 10 s |
+| setup | asks wallpaper / panes / sidebar once (terminal only), applies the saved answers | 1 s |
 | configs | copies `config/*` to `~/.config` | 1 s |
 | shell | copies `zsh/` to `~/.config/terminal-tooling/`, appends the managed line to `~/.zshrc`, creates `local.zsh` once | 1 s |
 | paths | rewrites the hard-coded home folder in the configs to your `$HOME` | 1 s |
@@ -125,6 +126,29 @@ If `~/.zshrc` is read-only or managed elsewhere (for example a symlink to a
 read-only file), the installer does not touch it; it prints the two-line block
 for you to add yourself and carries on.
 
+### Setup mode: wallpaper, panes, sidebar
+
+The installer asks three questions the first time it runs in a terminal. Run them
+again at any time:
+
+```bash
+terminal-tooling setup        # or: ~/dotfiles-terminal/setup.sh
+```
+
+| question | choices | default |
+|---|---|---|
+| background image | one of the shipped wallpapers, `n` none, or `o` your own image file | yujiro-demon-back.jpg |
+| layout | `2` sidebar + work, or `3` sidebar + work + shell | 3 |
+| sidebar tool | `yazi`, `lazygit`, `btop`, or a plain `shell` | yazi |
+
+Enter keeps the default. The answers are saved in
+`~/.config/terminal-tooling/setup.conf` and re-applied on every install, so
+`brew upgrade terminal-tooling && terminal-tooling configs` keeps your layout and
+wallpaper. Only the pane block of the Zellij layouts (between the `tt:panes`
+markers) and the `background-image` line of the Ghostty config are regenerated;
+everything else in those files is left as it is. Open a new Ghostty window to see
+the change.
+
 ### Upgrading from 1.x
 
 Version 2.0.0 no longer copies your personal shell files over yours. If you installed 1.x
@@ -150,7 +174,8 @@ Drop `SKIP_BREW=1` if the `Brewfile` changed.
 | want to change | edit |
 |---|---|
 | folders shown in the project picker | `~/.config/zellij/project-roots`, one folder per line (default `~/Documents/projects`) |
-| wallpaper / transparency | `background-image*` and `background-opacity` in `~/.config/ghostty/config`, then cmd+shift+, |
+| wallpaper, number of panes, sidebar tool | `terminal-tooling setup` (see [Setup mode](#setup-mode-wallpaper-panes-sidebar)) |
+| transparency | `background-opacity` in `~/.config/ghostty/config`, then cmd+shift+, |
 | prompt | `~/.config/starship.toml` |
 | shell aliases, PATH | `~/.zshrc` is yours; put overrides in `~/.config/terminal-tooling/local.zsh` (`TT_DISABLE`, `tt_after`) |
 | keys | `~/.config/zellij/config.kdl` (Zellij), `~/.config/yazi/keymap.toml` (sidebar) |
@@ -187,6 +212,7 @@ It copies the live config back into the repo, commits, and pushes if a remote is
 ```
 Brewfile                 tools + font + Ghostty for `brew bundle`
 install.sh               install everything (idempotent); --skip / --only
+setup.sh                 wallpaper / panes / sidebar questions; writes setup.conf, regenerates layouts
 bin/terminal-tooling     command exposed by the Homebrew package
 VERSION                  release version, used by the Homebrew formula
 backup.sh                sync live config and modules back here and commit
@@ -213,7 +239,7 @@ zsh/
   local.zsh.example      template for ~/.config/terminal-tooling/local.zsh
   modules/               10-omz, 20-tools, 30-ghostty, 40-fzf, 50-keys,
                          60-mouse (click-to-move, cmd+c/v/z), 70-yazi, 90-starship
-tests/                   bash tests: test_loader.sh, test_install.sh, test_cli.sh
+tests/                   bash tests: test_loader.sh, test_install.sh, test_cli.sh, test_setup.sh
 pictures/ghostty/        background images
 ```
 

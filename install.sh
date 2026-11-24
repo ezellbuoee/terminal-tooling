@@ -189,6 +189,15 @@ if [[ "$HOME" != "/Users/eolasehinde" ]]; then
   done
 fi
 
+# wallpaper / panes / sidebar: asked once in a terminal, otherwise defaults; re-applied on every run
+if want zellij || want ghostty-config; then
+  if [[ ! -f "$HOME/.config/terminal-tooling/setup.conf" && -t 0 ]]; then
+    say "Setup (change later with: terminal-tooling setup)"; bash "$R/setup.sh"
+  else
+    bash "$R/setup.sh" --defaults; bash "$R/setup.sh" --apply
+  fi
+fi
+
 if want yazi-config; then
   say "yazi plugins + flavour"
   ( cd "$HOME/.config/yazi" && ya pkg install >/dev/null 2>&1 ) || echo "   (ya pkg install skipped — run it later: cd ~/.config/yazi && ya pkg install)"
@@ -196,4 +205,4 @@ fi
 
 say "Done. Installed:${INSTALLED:- nothing}"
 if [[ -n "$SKIP" ]]; then echo "   Skipped: $SKIP (remembered in ~/.config/terminal-tooling/skip; edit it to re-enable)"; fi
-echo "   edit ~/.config/terminal-tooling/local.zsh to change modules"
+echo "   edit ~/.config/terminal-tooling/local.zsh to change modules; terminal-tooling setup for wallpaper, panes, sidebar"

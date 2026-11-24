@@ -45,7 +45,7 @@ grep -qx 'TT_DISABLE=(mouse starship)' "$tmp/.config/terminal-tooling/local.zsh"
 
 # G
 newhome; inst --only zellij
-if [[ -d "$tmp/.config/zellij" && ! -e "$tmp/.config/yazi" && ! -e "$tmp/.zshrc" && ! -e "$tmp/.config/terminal-tooling" ]]; then ok G; else bad G "wrong set installed"; fi
+if [[ -d "$tmp/.config/zellij" && ! -e "$tmp/.config/yazi" && ! -e "$tmp/.zshrc" && ! -e "$tmp/.config/terminal-tooling/init.zsh" ]]; then ok G; else bad G "wrong set installed"; fi
 
 # H
 newhome; inst --skip bogus; rc=$?
@@ -121,5 +121,15 @@ for args in "--only ''" "--only ," "--skip ''" "--skip ,"; do
   [[ $rc == 2 && ! -e "$tmp/.zshrc" && ! -e "$tmp/.config" ]] || { t=0; bad T "'$args' rc=$rc"; }
 done
 [[ $t == 1 ]] && ok T
+
+# W: a non-interactive install writes default setup answers and regenerates the layout for this HOME
+newhome; inst
+[[ "$(grep ^TT_PANES= "$tmp/.config/terminal-tooling/setup.conf")" == "TT_PANES=3" ]] \
+  && grep -q "command=\"$tmp/.config/zellij/bin/files-pane\"" "$tmp/.config/zellij/layouts/dev.kdl" && ok W || bad W "setup defaults not applied"
+
+# X: existing setup answers survive a re-install (2 panes, btop sidebar)
+newhome; mkdir -p "$tmp/.config/terminal-tooling"; printf 'TT_BACKGROUND=none\nTT_PANES=2\nTT_SIDEBAR=btop\n' > "$tmp/.config/terminal-tooling/setup.conf"; inst
+p="$(sed -n '/tt:panes-begin/,/tt:panes-end/p' "$tmp/.config/zellij/layouts/dev-tab.kdl")"
+[[ "$p" == *'command="btop"'* && "$p" != *'name="shell"'* ]] && grep -q '^#background-image = ' "$tmp/.config/ghostty/config" && ok X || bad X "answers not re-applied: $p"
 
 exit $fail
