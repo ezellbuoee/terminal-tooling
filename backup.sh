@@ -3,7 +3,7 @@
 set -euo pipefail
 R="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 for d in ghostty zellij yazi nvim lazygit btop; do
-  [[ -d "$HOME/.config/$d" ]] && rsync -a --delete --exclude '.DS_Store' --exclude '*.bak*' --exclude '/z/' "$HOME/.config/$d/" "$R/config/$d/"
+  [[ -d "$HOME/.config/$d" ]] && rsync -a --delete --exclude '.DS_Store' --exclude '*.bak*' --exclude '/z/' --exclude 'layouts/dev.kdl' --exclude 'layouts/dev-tab.kdl' "$HOME/.config/$d/" "$R/config/$d/"
 done
 cp "$HOME/.config/starship.toml" "$R/config/starship.toml"
 [[ -d "$HOME/.config/terminal-tooling/modules" ]] && rsync -a --delete "$HOME/.config/terminal-tooling/modules/" "$R/zsh/modules/"
