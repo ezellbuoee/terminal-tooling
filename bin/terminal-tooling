@@ -10,7 +10,7 @@ VERSION="$(cat "$R/VERSION" 2>/dev/null || echo dev)"
 case "${1:-help}" in
   install) shift; exec "$R/install.sh" "$@" ;;
   configs) shift; SKIP_BREW=1 exec "$R/install.sh" "$@" ;;
-  setup) exec "$R/setup.sh" ;;
+  setup) shift; exec "$R/setup.sh" "$@" ;;
   version|-v|--version) echo "terminal-tooling $VERSION" ;;
   help|-h|--help)
     cat <<USAGE

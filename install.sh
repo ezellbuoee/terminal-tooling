@@ -106,6 +106,12 @@ append_managed_block() {
   else echo "   ~/.zshrc: managed block appended"; fi
 }
 
+# ask the setup questions first (terminal only, once), so nobody waits for brew bundle before answering
+if { want zellij || want ghostty-config; } && [[ ! -f "$HOME/.config/terminal-tooling/setup.conf" ]]; then
+  if [[ -t 0 ]]; then say "Setup (change later with: terminal-tooling setup)"; bash "$R/setup.sh" --ask
+  else bash "$R/setup.sh" --defaults; fi
+fi
+
 if [[ -z "${SKIP_BREW:-}" ]]; then
   if ! command -v brew >/dev/null 2>&1 && [[ ! -x /opt/homebrew/bin/brew ]]; then
     say "Installing Homebrew"
@@ -189,14 +195,11 @@ if [[ "$HOME" != "/Users/eolasehinde" ]]; then
   done
 fi
 
-# wallpaper / panes / sidebar: asked once in a terminal, otherwise defaults; re-applied on every run
-if want zellij || want ghostty-config; then
-  if [[ ! -f "$HOME/.config/terminal-tooling/setup.conf" && -t 0 ]]; then
-    say "Setup (change later with: terminal-tooling setup)"; bash "$R/setup.sh"
-  else
-    bash "$R/setup.sh" --defaults; bash "$R/setup.sh" --apply
-  fi
-fi
+# wallpaper / panes / sidebar: answers saved earlier (or defaults) are applied to the installed files
+TT_APPLY=""
+if want zellij; then TT_APPLY="zellij"; fi
+if want ghostty-config; then TT_APPLY="$TT_APPLY ghostty"; fi
+if [[ -n "$TT_APPLY" ]]; then TT_APPLY="$TT_APPLY" bash "$R/setup.sh" --apply; fi
 
 if want yazi-config; then
   say "yazi plugins + flavour"

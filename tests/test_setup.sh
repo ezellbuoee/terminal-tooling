@@ -43,7 +43,7 @@ p="$(panes "$tmp/.config/zellij/layouts/dev.kdl")"
 # 3. the rest of the layout file is untouched by a regeneration
 newhome; printf '1\n2\n3\n' | run
 diff <(sed '/tt:panes-begin/,/tt:panes-end/d' "$tmp/.config/zellij/layouts/dev.kdl") <(sed -e "s|/Users/eolasehinde|$tmp|g" -e '/tt:panes-begin/,/tt:panes-end/d' "$R/config/zellij/layouts/dev.kdl") >/dev/null \
-  && [[ "$(panes "$tmp/.config/zellij/layouts/dev.kdl")" == *'name="files" size="25%" command="btop" borderless=true'* ]] && ok 3 || bad 3 "outside the markers changed, or btop missing"
+  && [[ "$(panes "$tmp/.config/zellij/layouts/dev.kdl")" == *'name="files" size="40%" command="btop" borderless=true'* ]] && ok 3 || bad 3 "outside the markers changed, or btop missing"
 
 # 4. background "none" comments the line out; choosing an image again restores it
 newhome; printf 'n\n3\n1\n' | run
@@ -67,5 +67,50 @@ rm -rf "$tmp/.config/zellij" "$tmp/.config/ghostty"; run --apply && [[ ! -s "$tm
 # 7. --apply without a conf uses defaults and writes the conf; another user's HOME path is used in the sidebar command
 newhome; run --apply
 [[ -f "$tmp/.config/terminal-tooling/setup.conf" ]] && [[ "$(panes "$tmp/.config/zellij/layouts/dev.kdl")" == *"command=\"$tmp/.config/zellij/bin/files-pane\""* ]] && ok 7 || bad 7 "conf missing or sidebar command path wrong"
+
+# 8. a bad value on the last conf line is ignored with a warning; apply still succeeds
+newhome; mkdir -p "$tmp/.config/terminal-tooling"; printf 'TT_PANES=2\nTT_SIDEBAR=nvim' > "$tmp/.config/terminal-tooling/setup.conf"
+run --apply; rc=$?
+[[ $rc == 0 ]] && grep -q "ignoring TT_SIDEBAR=nvim" "$tmp/.err" && [[ "$(panes "$tmp/.config/zellij/layouts/dev.kdl")" == *'size="25%"'*'files-pane'* ]] && ok 8 || bad 8 "rc=$rc err=$(cat "$tmp/.err")"
+
+# 9. TT_APPLY=zellij leaves the Ghostty config byte-identical
+newhome; printf 'font-size = 14\n' > "$tmp/.config/ghostty/config"; TT_APPLY=zellij run --apply
+[[ "$(cat "$tmp/.config/ghostty/config")" == "font-size = 14" ]] && ok 9 || bad 9 "ghostty touched: $(cat "$tmp/.config/ghostty/config")"
+
+# 10. a begin marker without an end marker leaves the file unchanged and warns
+newhome; sed -i '' '/tt:panes-end/d' "$tmp/.config/zellij/layouts/dev-tab.kdl"; cp "$tmp/.config/zellij/layouts/dev-tab.kdl" "$tmp/.tab1"
+printf '1\n2\n2\n' | run
+cmp -s "$tmp/.tab1" "$tmp/.config/zellij/layouts/dev-tab.kdl" && grep -q "markers missing or broken" "$tmp/.err" && [[ "$(panes "$tmp/.config/zellij/layouts/dev.kdl")" == *lazygit* ]] && ok 10 || bad 10 "broken-marker file changed or no warning"
+
+# 11. a path with & in the conf is written literally; a | path is refused at the prompt
+newhome; mkdir -p "$tmp/a&b"; touch "$tmp/a&b/x.jpg"; printf 'TT_BACKGROUND=%s\nTT_PANES=3\nTT_SIDEBAR=yazi\n' "$tmp/a&b/x.jpg" > "$tmp/.config/terminal-tooling/setup.conf"; run --apply
+grep -qF "background-image = ~/a&b/x.jpg" "$tmp/.config/ghostty/config" && [[ "$(grep -c '^background-image = ' "$tmp/.config/ghostty/config")" == 1 ]] || bad 11 "& path mangled: $(grep background-image "$tmp/.config/ghostty/config")"
+mkdir -p "$tmp/c|d"; touch "$tmp/c|d/y.png"; printf 'o\n%s\n1\n3\n1\n' "$tmp/c|d/y.png" | run
+grep -q "not supported" "$tmp/.out" && [[ "$(conf TT_BACKGROUND)" == "$tmp/Pictures/ghostty/baki-black.jpg" ]] && ok 11 || bad 11 "| path accepted"
+
+# 12. end of input with a missing saved image finishes quickly and keeps a valid state
+newhome; printf 'TT_BACKGROUND=%s/gone.png\nTT_PANES=3\nTT_SIDEBAR=yazi\n' "$tmp" > "$tmp/.config/terminal-tooling/setup.conf"
+( HOME="$tmp" bash "$R/setup.sh" </dev/null >"$tmp/.out" 2>"$tmp/.err" & p=$!; ( sleep 5; kill $p 2>/dev/null ) & w=$!; wait $p; echo $? > "$tmp/.rc"; kill $w 2>/dev/null ) 2>/dev/null
+[[ "$(cat "$tmp/.rc")" == 0 && "$(conf TT_BACKGROUND)" == "$tmp/Pictures/ghostty/yujiro-demon-back.jpg" ]] && ok 12 || bad 12 "rc=$(cat "$tmp/.rc") bg=$(conf TT_BACKGROUND) lines=$(wc -l < "$tmp/.out")"
+
+# 13. a wallpaper with spaces in its name is one entry and selectable
+newhome; touch "$tmp/Pictures/ghostty/a my wall.jpg"; printf '1\n3\n1\n' | run
+grep -q "1) a my wall.jpg" "$tmp/.out" && [[ "$(conf TT_BACKGROUND)" == "$tmp/Pictures/ghostty/a my wall.jpg" ]] && grep -qF "background-image = ~/Pictures/ghostty/a my wall.jpg" "$tmp/.config/ghostty/config" && ok 13 || bad 13 "space name split: $(grep '1)' "$tmp/.out")"
+
+# 14. other spellings of the Ghostty key are handled, and never duplicated
+newhome; printf 'font-size = 14\n# background-image = old.jpg\n' > "$tmp/.config/ghostty/config"; printf '2\n3\n1\n' | run
+[[ "$(grep -c 'background-image' "$tmp/.config/ghostty/config")" == 1 ]] && grep -q '^background-image = ~/Pictures/ghostty/baki-faceoff.jpg$' "$tmp/.config/ghostty/config" || bad 14 "commented variant: $(cat "$tmp/.config/ghostty/config")"
+printf 'font-size = 14\nbackground-image=x.jpg\n' > "$tmp/.config/ghostty/config"; printf 'n\n3\n1\n' | run
+[[ "$(cat "$tmp/.config/ghostty/config")" == $'font-size = 14\n#background-image=x.jpg' ]] && ok 14 || bad 14 "no-space variant: $(cat "$tmp/.config/ghostty/config")"
+
+# 15. a last answer without a trailing newline still counts; setup.conf CRLF tolerated
+newhome; printf '1\n3\n2' | run
+[[ "$(conf TT_SIDEBAR)" == lazygit ]] || bad 15 "last answer dropped"
+printf 'TT_PANES=2\r\nTT_SIDEBAR=btop\r\n' > "$tmp/.config/terminal-tooling/setup.conf"; run --apply
+[[ "$(panes "$tmp/.config/zellij/layouts/dev.kdl")" == *'command="btop"'* && ! -s "$tmp/.err" ]] && ok 15 || bad 15 "CRLF conf: $(cat "$tmp/.err")"
+
+# 16. a layout that is a symlink stays a symlink and its target is updated
+newhome; mv "$tmp/.config/zellij/layouts/dev.kdl" "$tmp/dev.real"; ln -s "$tmp/dev.real" "$tmp/.config/zellij/layouts/dev.kdl"; printf '1\n2\n1\n' | run
+[[ -L "$tmp/.config/zellij/layouts/dev.kdl" ]] && [[ "$(panes "$tmp/dev.real")" == *'size="25%"'* ]] && ok 16 || bad 16 "symlink replaced"
 
 exit $fail
